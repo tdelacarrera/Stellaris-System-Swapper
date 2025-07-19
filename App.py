@@ -64,10 +64,11 @@ def extract_coordinates(system):
     return x, y
 
 #replace the hyperlane block between the systems
-def replace_hyperlane_block(system: str, new_hyperlane_block: str) -> str:
+def replace_hyperlane_block(system, new_hyperlane_block):
     start = system.find('hyperlane=')
     if start == -1:
-        return system
+        if new_hyperlane_block is None:
+            return system
 
     index = start + len('hyperlane=')
     while index < len(system) and system[index].isspace():
@@ -89,7 +90,10 @@ def replace_hyperlane_block(system: str, new_hyperlane_block: str) -> str:
 
     end = index
     old_block = system[start:end]
-    return system.replace(old_block, new_hyperlane_block)
+    if new_hyperlane_block is None:
+        return system.replace(old_block, '').strip()
+    else:
+        return system.replace(old_block, new_hyperlane_block)
 
 #replace coordinates
 def replace_coordinates(system, new_x, new_y):
@@ -154,12 +158,12 @@ def get_system_by_id(block: str, id: int) -> str:
     raise ValueError(f"System block for id {id} not properly closed")
 
 #update the hyperlane connetions of all systems connected to the two systems
-def update_connected_hyperlanes(block: str, id1: str, id2: str) -> str:
+def update_connected_hyperlanes(block, id1, id2):
     index = 0
     updated_block = block
 
     while index < len(updated_block):
-        match = re.search(r'\b(\d+)\s*=\s*\{', updated_block[index:])
+        match = re.search(pattern=r'\b(\d+)\s*=\s*\{', string=updated_block[index:])
         if not match:
             break
 
