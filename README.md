@@ -1,6 +1,6 @@
 # Stellaris System Swapper
 
-A simple Python GUI tool that lets you swap two systems in a Stellaris save game, built with **Tkinter**.
+A simple Python GUI tool that lets you swap two systems in a Stellaris save game.
 
 ## Features
 
