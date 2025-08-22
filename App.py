@@ -1,6 +1,6 @@
 import re
 import tkinter as tk
-from tkinter import filedialog, messagebox
+from tkinter import filedialog, messagebox, ttk
 
 #extract the galactic_objects block
 def extract_galactic_object_block(content):
@@ -267,7 +267,7 @@ def on_browse_input():
 
 def on_browse_output():
     filename = filedialog.asksaveasfilename(
-        title="Select directory",
+        title="Select output file",
         filetypes=[("All files", "*.*")])
     if filename:
         output_path_var.set(filename)
@@ -279,58 +279,107 @@ def on_swap():
     id2 = id2_var.get().strip()
 
     if not FILE_CONTENT or not output_path or not id1 or not id2:
-        messagebox.showerror(title="Error", message="Complete all fields.")
+        messagebox.showerror(title="Error", message="Please complete all fields.")
         return
-    elif not not id1 == id2:
-        messagebox.showerror(title="Error", message="The systems ID cannot be the same.")
+    elif id1 == id2:
+        messagebox.showerror(title="Error", message="System IDs cannot be the same.")
         return
     try:
         swap(id1, id2)
         with open(output_path, "w", encoding="utf-8") as f:
             f.write(FILE_CONTENT)
-        messagebox.showinfo(title="Éxito", message=f"Systems swapped")
+        messagebox.showinfo(title="Success", message="Systems swapped successfully!")
     except Exception as e:
-        messagebox.showerror(title="Error", message=f"Error :\n{e}")
+        messagebox.showerror(title="Error", message=f"An error occurred:\n{str(e)}")
 
-
+# Initialize global variable
 FILE_CONTENT = None
 
-width = 450
-height = 270
+# Create main window
 root = tk.Tk()
-root.withdraw()
 root.title("System Swapper")
-root.iconbitmap("icon.ico")
-root.resizable(width= False, height=False)
+root.resizable(False, False)
+
+# Set window size and center it
+width = 600
+height = 350
 x = (root.winfo_screenwidth() // 2) - (width // 2)
 y = (root.winfo_screenheight() // 2) - (height // 2)
 root.geometry(f'{width}x{height}+{x}+{y}')
 
+# Try to set icon (handle case where icon.ico is missing)
+try:
+    root.iconbitmap("icon.ico")
+except:
+    pass  # Silently skip if icon is not found
+
+# Configure style
+style = ttk.Style()
+style.theme_use('clam')  # Use 'clam' theme for a modern look
+style.configure('TButton', font=('Helvetica', 10), padding=10)
+style.configure('TLabel', font=('Helvetica', 10))
+style.configure('TEntry', padding=5)
+style.map('TButton', 
+    background=[('active', '#005f87')], 
+    foreground=[('active', 'white')]
+)
+
+# Create main frame with padding
+main_frame = ttk.Frame(root, padding="20")
+main_frame.grid(row=0, column=0, sticky="nsew")
+root.columnconfigure(0, weight=1)
+root.rowconfigure(0, weight=1)
+
+# Variables
 input_path_var = tk.StringVar()
 output_path_var = tk.StringVar()
 id1_var = tk.StringVar()
 id2_var = tk.StringVar()
 
-# Input file
-tk.Label(root, text="Input file").grid(row=0, column=0, padx=10, pady=10, sticky="w")
-tk.Entry(root, textvariable=input_path_var, width=50).grid(row=0, column=1, padx=5)
-tk.Button(root, text="Open", command=on_browse_input).grid(row=0, column=2, padx=5)
+# Input file row
+ttk.Label(main_frame, text="Input File:").grid(row=0, column=0, sticky="w", pady=5)
+input_entry = ttk.Entry(main_frame, textvariable=input_path_var, width=50)
+input_entry.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
+ttk.Button(main_frame, text="Browse", command=on_browse_input).grid(row=0, column=2, padx=5)
 
-# Output file
-tk.Label(root, text="Output file").grid(row=1, column=0, padx=10, pady=10, sticky="w")
-tk.Entry(root, textvariable=output_path_var, width=50).grid(row=1, column=1, padx=5)
-tk.Button(root, text="Save", command=on_browse_output).grid(row=1, column=2, padx=5)
+# Output file row
+ttk.Label(main_frame, text="Output File:").grid(row=1, column=0, sticky="w", pady=5)
+output_entry = ttk.Entry(main_frame, textvariable=output_path_var, width=50)
+output_entry.grid(row=1, column=1, padx=5, pady=5, sticky="ew")
+ttk.Button(main_frame, text="Browse", command=on_browse_output).grid(row=1, column=2, padx=5)
 
-# System 1
-tk.Label(root, text="ID System 1").grid(row=2, column=0, padx=10, pady=10, sticky="w")
-tk.Entry(root, textvariable=id1_var).grid(row=2, column=1, sticky="w", padx=5)
+# System ID 1 row
+ttk.Label(main_frame, text="System ID 1:").grid(row=2, column=0, sticky="w", pady=5)
+ttk.Entry(main_frame, textvariable=id1_var, width=20).grid(row=2, column=1, sticky="w", padx=5)
 
-# System 2
-tk.Label(root, text="ID System 2").grid(row=3, column=0, padx=10, pady=10, sticky="w")
-tk.Entry(root, textvariable=id2_var).grid(row=3, column=1, sticky="w", padx=5)
+# System ID 2 row
+ttk.Label(main_frame, text="System ID 2:").grid(row=3, column=0, sticky="w", pady=5)
+ttk.Entry(main_frame, textvariable=id2_var, width=20).grid(row=3, column=1, sticky="w", padx=5)
 
-# Swap system button
-tk.Button(root, text="Swap", command=on_swap, bg="#347aeb", fg="white", font=("Arial", 12)).grid(row=4, column=0, columnspan=3, pady=20)
+# Swap button
+swap_button = ttk.Button(
+    main_frame, 
+    text="Swap Systems", 
+    command=on_swap, 
+    style='Accent.TButton'
+)
+swap_button.grid(row=4, column=0, columnspan=3, pady=20)
 
+# Configure custom style for the Swap button
+style.configure('Accent.TButton', 
+    background='#347aeb', 
+    foreground='white', 
+    font=('Helvetica', 12, 'bold'),
+    padding=10
+)
+style.map('Accent.TButton',
+    background=[('active', '#005f87')],
+    foreground=[('active', 'white')]
+)
+
+# Configure grid weights for responsiveness
+main_frame.columnconfigure(1, weight=1)
+
+# Start the main loop
 root.deiconify()
 root.mainloop()
