@@ -2,6 +2,66 @@ import re
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
+def remove_all_exploration_data():
+    global FILE_CONTENT
+
+    if not FILE_CONTENT:
+        messagebox.showerror(title="Error", message="Please load a file first.")
+        return
+
+    try:
+        # Find the country block start
+        match = re.search(r'country\s*=\s*\{', FILE_CONTENT)
+        if not match:
+            raise ValueError("Country block not found.")
+
+        start_index = match.end()
+        index = start_index
+        brace_count = 1
+        file_length = len(FILE_CONTENT)
+
+        # Optimized brace counting with early exit
+        while index < file_length and brace_count > 0:
+            char = FILE_CONTENT[index]
+            if char == '{':
+                brace_count += 1
+            elif char == '}':
+                brace_count -= 1
+            index += 1
+
+        if brace_count != 0:
+            raise ValueError("Mismatched braces in country block.")
+
+        country_start = match.start()
+        country_end = index
+        country_block = FILE_CONTENT[start_index:country_end - 1]
+
+        # Consolidated regex pattern to remove all target blocks in one pass
+        pattern = r'(terra_incognita|hyperlane_systems|visited_objects)\s*=\s*\{(?:[^{}]*|\{[^{}]*\})*\}'
+        cleaned_country_block = re.sub(pattern, '', country_block, flags=re.DOTALL)
+
+        # Update FILE_CONTENT with minimal string operations
+        FILE_CONTENT = (
+            FILE_CONTENT[:start_index] +
+            cleaned_country_block +
+            FILE_CONTENT[country_end - 1:]
+        )
+
+        # Save to file
+        output_path = output_path_var.get()
+        if not output_path:
+            messagebox.showerror(title="Error", message="Please select an output file.")
+            return
+
+        with open(output_path, "w", encoding="utf-8") as f:
+            f.write(FILE_CONTENT)
+
+        messagebox.showinfo(title="Success", message="Exploration data removed!")
+
+    except Exception as e:
+        messagebox.showerror(title="Error", message=f"An error occurred:\n{str(e)}")
+
+
 #extract the galactic_objects block
 def extract_galactic_object_block(content):
     match = re.search(pattern=r'galactic_object\s*=\s*\{(.*?)\n\}', string= content, flags = re.DOTALL)
@@ -363,6 +423,17 @@ swap_button = ttk.Button(
     command=on_swap, 
     style='Accent.TButton'
 )
+
+# Button to remove country sub-blocks
+clean_button = ttk.Button(
+    main_frame,
+    text="Remove exploration data",
+    command=remove_all_exploration_data,
+    style='Accent.TButton'
+)
+clean_button.grid(row=5, column=0, columnspan=3, pady=10)
+
+
 swap_button.grid(row=4, column=0, columnspan=3, pady=20)
 
 # Configure custom style for the Swap button
