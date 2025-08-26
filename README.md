@@ -6,6 +6,7 @@ A simple Python GUI tool that lets you swap two systems in a Stellaris save game
 
 - Swap coordinates, arm, index, precursors and hyperlanes of two systems.
 - Automatically update connected hyperlanes across the two systems.
+- Remove exploration data for all empires in the galaxy.
 
 ## Run the application
 
@@ -30,15 +31,18 @@ To run this application
 
 4. Enter the IDs of the two star systems you want to swap.
 
-5. Click Swap.
+5. Click **Swap**.
+   
+7. (Optional) Click **Remove Exploration Data** to remove all exploration data.  
+This will restore Terra incognita across the entire galaxy, affecting all players.
 
-6. The tool will generate a new file named `gamestate_new` by default, with the modified systems.
+9. The tool will generate a new file named `gamestate_new` by default, with the modified systems.
 
-7. Rename `gamestate_new` to `gamestate`
+10. Rename `gamestate_new` to `gamestate`
 
-8. Repack the modified `gamestate` and original `meta` into a new `.zip` archive with a .sav extension.
+11. Repack the modified `gamestate` and original `meta` into a new `.zip` archive with a .sav extension.
 
-9. Place the modified `.sav` file back into your Stellaris save folder and load it in-game.
+12. Place the modified `.sav` file back into your Stellaris save folder and load it in-game.
 
 ## ⚠️ Disclaimer
 
