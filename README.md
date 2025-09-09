@@ -21,28 +21,16 @@ To run this application
     
 ## Usage
 
-1. Extract your `.sav` save file using a file extractor
+1. Open your save game.
+
+2. Enter the IDs of the two systems you want to swap.
+
+3. Click **Swap**.
    
-   You will get two files: 
-   - `gamestate`  
-   - `meta`
-
-3. Launch the application and open the extracted `gamestate` file. 
-
-4. Enter the IDs of the two star systems you want to swap.
-
-5. Click **Swap**.
-   
-7. (Optional) Click **Remove Exploration Data** to remove all exploration data.  
+4. (Optional) Click **Remove Exploration Data** to remove all exploration data.  
 This will restore Terra incognita across the entire galaxy, affecting all players.
 
-9. The tool will generate a new file named `gamestate_new` by default, with the modified systems.
-
-10. Rename `gamestate_new` to `gamestate`
-
-11. Repack the modified `gamestate` and original `meta` into a new `.zip` archive with a .sav extension.
-
-12. Place the modified `.sav` file back into your Stellaris save folder and load it in-game.
+5. The tool will generate a new save game, with the modified systems.
 
 ## ⚠️ Disclaimer
 
