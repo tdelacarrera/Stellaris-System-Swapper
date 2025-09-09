@@ -1,6 +1,7 @@
 import re
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
+import zipfile
 
 def remove_all_exploration_data():
     global FILE_CONTENT
@@ -20,7 +21,6 @@ def remove_all_exploration_data():
         brace_count = 1
         file_length = len(FILE_CONTENT)
 
-        # Optimized brace counting with early exit
         while index < file_length and brace_count > 0:
             char = FILE_CONTENT[index]
             if char == '{':
@@ -36,27 +36,17 @@ def remove_all_exploration_data():
         country_end = index
         country_block = FILE_CONTENT[start_index:country_end - 1]
 
-        # Consolidated regex pattern to remove all target blocks in one pass
         pattern = r'(terra_incognita|hyperlane_systems|visited_objects)\s*=\s*\{(?:[^{}]*|\{[^{}]*\})*\}'
         cleaned_country_block = re.sub(pattern, '', country_block, flags=re.DOTALL)
 
-        # Update FILE_CONTENT with minimal string operations
         FILE_CONTENT = (
             FILE_CONTENT[:start_index] +
             cleaned_country_block +
             FILE_CONTENT[country_end - 1:]
         )
-
-        # Save to file
-        output_path = output_path_var.get()
-        if not output_path:
-            messagebox.showerror(title="Error", message="Please select an output file.")
-            return
-
-        with open(output_path, "w", encoding="utf-8") as f:
-            f.write(FILE_CONTENT)
-
-        messagebox.showinfo(title="Success", message="Exploration data removed!")
+        
+        if save_file():
+            messagebox.showinfo(title="Success", message="Exploration data removed!")
 
     except Exception as e:
         messagebox.showerror(title="Error", message=f"An error occurred:\n{str(e)}")
@@ -313,22 +303,59 @@ def swap(id1, id2):
     updated_block = swap_system_data(block, id1, id2)
     # update content
     FILE_CONTENT = FILE_CONTENT[:start] + updated_block + FILE_CONTENT[end:]
-#
+
+
+def save_file():
+    global FILE_CONTENT, META_CONTENT
+    output_path = output_path_var.get()
+    if not output_path:
+        messagebox.showerror(title="Error", message="Please select an output file.")
+        return False
+
+    try:
+        if output_path.endswith('.sav'):
+            if META_CONTENT is None:
+                messagebox.showerror(title="Error", message="No meta data available. Load from a .sav file or save as plain text.")
+                return False
+            with zipfile.ZipFile(output_path, "w", compression=zipfile.ZIP_STORED) as z:
+                z.writestr("gamestate", FILE_CONTENT.encode("utf-8"))
+                z.writestr("meta", META_CONTENT.encode("utf-8"))
+        else:
+            with open(output_path, "w", encoding="utf-8") as f:
+                f.write(FILE_CONTENT)
+        return True
+    except Exception as e:
+        messagebox.showerror(title="Error", message=f"Failed to save file:\n{str(e)}")
+        return False
+
 def on_browse_input():
-    global FILE_CONTENT
+    global FILE_CONTENT, META_CONTENT
     filename = filedialog.askopenfilename(
-        title="Select the gamestate",
-        filetypes=[("All files", "*.*")])
+        title="Select the save file",
+        filetypes=[("Stellaris Save", "*.sav"), ("All files", "*.*")])
     if filename:
-        with open(filename, "r", encoding="utf-8") as f:
-            FILE_CONTENT = f.read()
-        input_path_var.set(filename)
-        output_path_var.set(filename + "_new")
+        try:
+            if filename.endswith('.sav'):
+                with zipfile.ZipFile(filename, 'r') as z:
+                    FILE_CONTENT = z.read('gamestate').decode('utf-8')
+                    META_CONTENT = z.read('meta').decode('utf-8')
+            else:
+                with open(filename, "r", encoding="utf-8") as f:
+                    FILE_CONTENT = f.read()
+                META_CONTENT = None
+            input_path_var.set(filename)
+            if filename.endswith('.sav'):
+                output_path_var.set(filename.replace('.sav', '_new.sav'))
+            else:
+                output_path_var.set(filename + "_new")
+        except Exception as e:
+            messagebox.showerror(title="Error", message=f"Failed to load file:\n{str(e)}")
 
 def on_browse_output():
     filename = filedialog.asksaveasfilename(
         title="Select output file",
-        filetypes=[("All files", "*.*")])
+        filetypes=[("Stellaris Save", "*.sav"), ("All files", "*.*")],
+        defaultextension=".sav")
     if filename:
         output_path_var.set(filename)
 
@@ -346,14 +373,14 @@ def on_swap():
         return
     try:
         swap(id1, id2)
-        with open(output_path, "w", encoding="utf-8") as f:
-            f.write(FILE_CONTENT)
-        messagebox.showinfo(title="Success", message="Systems swapped successfully!")
+        if save_file():
+            messagebox.showinfo(title="Success", message="Systems swapped successfully!")
     except Exception as e:
         messagebox.showerror(title="Error", message=f"An error occurred:\n{str(e)}")
 
-# Initialize global variable
+# Initialize global variables
 FILE_CONTENT = None
+META_CONTENT = None
 
 # Create main window
 root = tk.Tk()
